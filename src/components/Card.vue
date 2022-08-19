@@ -2,17 +2,17 @@
     <div class="task_card">
 
         <div class="ch_box">
-            <span>{{ tasks.category }}</span>
+            <span>{{ task.category }}</span>
             <button></button>
         </div>
 
         <div  class="task_name">
-            <span>{{ tasks.task_text }}</span>
+            <span>{{ task.title }}</span>
         </div>
 
         <div class="task_desc">
-            <p>Timeline: {{ tasks.timeline }}</p>
-            <p>Cost: {{ tasks.cost }}</p>
+            <p>Timeline: {{ task.dateEnd }}</p>
+            <p>Cost: {{ task.price }}</p>
         </div>
 
     </div>
@@ -21,18 +21,19 @@
 export default {
     name: 'CardVue',
     props: {
-        tasks: {
+        task: {
             category: String,
-            task_text: String,
-            timeline: String,
-            cost: String
+            title: String,
+            dateEnd: Date,
+            price: Number
         }
     }
 }
 </script>
 <style>
 .task_card {
-    min-width: 300px;
+    width: 350px;
+    height: 200px;
     background-color: #EDF8FF;
     border-radius: 15px;
     text-align: left;
