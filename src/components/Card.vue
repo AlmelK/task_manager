@@ -30,7 +30,7 @@ export default {
     }
 }
 </script>
-<style>
+<style scoped>
 .task_card {
     width: 350px;
     height: 200px;

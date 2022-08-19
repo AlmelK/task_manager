@@ -1,5 +1,12 @@
 <template>
 
+  <div class="create_task">
+    <button @click="showModal">Добавить задание</button>
+  </div>
+
+  <MyModal v-model:show="modalVisible">
+    <CreateForm />    
+  </MyModal>
   <div class="container" v-if="!isDataLoading">
 
     <div v-for="offer in tasks" :key="offer.id">
@@ -18,13 +25,17 @@
 
 <script>
 import CardVue from './components/Card.vue';
+import CreateForm from './components/CreateForm.vue';
 import axios from 'axios';
+import MyModal from './components/MyModal.vue';
 
 export default {
   name: 'App',
   components: {
-    CardVue
-  },
+    CardVue,
+    CreateForm,
+    MyModal
+},
   data() {
     return {
       tasks: [],
@@ -41,6 +52,8 @@ export default {
 
       //количество загружаемых за раз заданий 
       limit: 9,
+
+      modalVisible: false,
     }
   },
   methods: {
@@ -63,6 +76,9 @@ export default {
       } catch (e) {
         alert("Error" + e)
       }
+    },
+    showModal() {
+      this.modalVisible = true
     }
   },
   mounted() {
@@ -93,6 +109,7 @@ body {
 .container {
   max-width: 100%;
   display: flex;
+  margin: auto;
   flex-wrap: wrap;
   flex-direction: row;
   justify-content: space-around;
@@ -100,6 +117,27 @@ body {
 
 .observer {
   height: 30px;
-  background-color: cadetblue;
+}
+
+.create_task {
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.create_task button {
+  background-color: rgb(81, 127, 234);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  color: white;
+}
+
+.create_task button:hover {
+  cursor: pointer;
+  box-shadow: 5px 5px 5px #a1a1a1;
+  transition: .5s;
 }
 </style>
