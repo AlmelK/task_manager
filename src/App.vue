@@ -1,143 +1,197 @@
 <template>
-
-  <div class="create_task">
-    <button @click="showModal">Добавить задание</button>
-  </div>
-
-  <MyModal v-model:show="modalVisible">
-    <CreateForm />    
-  </MyModal>
-  <div class="container" v-if="!isDataLoading">
-
-    <div v-for="offer in tasks" :key="offer.id">
-      <CardVue :task="offer" />
+  <section class="card_wrapper">
+    <div v-for="task in tasks" :key="task.id" class="cardItem">
+      <TaskCard :task="task" />
     </div>
 
-  </div>
-  <div v-else>
-    Load data ...
-  </div>
-
-  <div ref="observer" class="observer">
-
-  </div>
+    <div ref="loadMore" class="load_more" v-if="loadmore">
+      <svg viewBox="25 25 50 50">
+        <circle cx="50" cy="50" r="20"></circle>
+      </svg>
+    </div>
+  </section>
 </template>
 
 <script>
-import CardVue from './components/Card.vue';
-import CreateForm from './components/CreateForm.vue';
+
 import axios from 'axios';
-import MyModal from './components/MyModal.vue';
+import TaskCard from './components/TaskCard.vue';
 
 export default {
   name: 'App',
   components: {
-    CardVue,
-    CreateForm,
-    MyModal
-},
+    TaskCard
+  },
+
   data() {
     return {
       tasks: [],
 
-      isDataLoading: false,
-
-      //общее количество страниц
-      totalPage: 0,
-
-      pagecount: 0,
-
-      //индекс первого элемента на странице
-      pageIndex: 0,
-
-      //количество загружаемых за раз заданий 
       limit: 9,
 
-      modalVisible: false,
+      startIndex: 0,
+
+      pageCount: 8,
+
+      pageNumber: 1,
+
+      loadmore: true
     }
   },
   methods: {
-    async fetchData() {
+    async getTasks() {
       try {
-        this.pageIndex += this.limit
-        this.pagecount += 1;
-        setTimeout(async () => {
-          const response = await axios.get('http://api.staging.umeu.app/test/tasks/search', {
+        const response = await axios.get('http://api.staging.umeu.app/test/tasks/search',
+          {
             params: {
               pagingCount: this.limit,
-              pagingAfter: this.pageIndex
+              pagingAfter: this.startIndex
             }
           })
-          this.totalPage = Math.ceil(response.headers['content-length']/this.limit)
-          console.log(this.pagecount)
-          this.tasks = [...this.tasks, ...response.data.result.offers]
-          
-        }, 1000)
+        this.tasks.push(...response.data.result.offers)
       } catch (e) {
-        alert("Error" + e)
+        console.log(e.message)
       }
     },
-    showModal() {
-      this.modalVisible = true
+
+    // 
+    setLoadingObserver() {
+      var options = {
+        rootMargin: '0px',
+        threshold: 1.0
+      }
+      var callback =  (entries) => {
+        /* Content excerpted, show below */
+        if (entries[0].isIntersecting && this.pageNumber < this.pageCount) {
+          setTimeout(() => {
+              this.getTasks()
+              this.startIndex += this.limit
+              this.pageNumber++
+
+              if(this.pageNumber >= this.pageCount) {
+                this.loadmore = false
+              }
+            }, 1000)
+        } 
+            
+      };
+      var observer = new IntersectionObserver(callback, options);
+
+      observer.observe(this.$refs.loadMore)
     }
   },
   mounted() {
-    this.fetchData()
-    console.log(this.$refs.observer)
-    const options = {
-      rootMargin: '0px',
-      threshold: 1.0
-    }
-    const callback = (entries) => {
-      if (entries[0].isIntersecting && this.pagecount < this.totalPage) {
-        this.fetchData()
-      }
-    }
-    const observer = new IntersectionObserver(callback, options);
-    observer.observe(this.$refs.observer);
+    //this.fetchData()
+    this.setLoadingObserver()
   }
+
 }
 </script>
 
-<style>
-body {
-  margin: 0;
-  padding: 5%;
-  box-sizing: border-box;
-}
+<style lang="sass">
+body
+    padding: 5% 5% 0 5%
+    box-sizing: border-box
+    background: linear-gradient(70deg, #fffafa, #e6e6e6)
 
-.container {
-  max-width: 100%;
-  display: flex;
-  margin: auto;
-  flex-wrap: wrap;
-  flex-direction: row;
-  justify-content: space-around;
-}
+.card_wrapper
+    padding: 0 auto
+    display: flex
+    min-width: 100%
+    justify-content: center
+    flex-wrap: wrap
+    flex-direction: column
 
-.observer {
-  height: 30px;
-}
+    .load_more
+      display: flex
+      justify-content: center
 
-.create_task {
-  max-width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px;
-}
+      svg 
+        width: 3.75em
+        transform-origin: center
+        animation: rotate 2s linear infinite
+      
+        circle 
+          fill: none
+          stroke: #473144
+          stroke-width: 3
+          stroke-dasharray: 1, 200
+          stroke-dashoffset: 0
+          stroke-linecap: round
+          animation: dash 1.5s ease-in-out infinite
 
-.create_task button {
-  background-color: rgb(81, 127, 234);
-  padding: 10px 20px;
-  border: none;
-  border-radius: 20px;
-  font-size: 16px;
-  color: white;
-}
+          @-moz-keyframes rotate 
+            100% 
+              transform: rotate(360deg)
+            
+          
+          @-webkit-keyframes rotate 
+            100% 
+              transform: rotate(360deg)
+            
+          
+          @-o-keyframes rotate 
+            100% 
+              transform: rotate(360deg)
+            
+          
+          @keyframes rotate 
+            100% 
+              transform: rotate(360deg)
+            
+          
+          @-moz-keyframes dash 
+            0% 
+              stroke-dasharray: 1, 200
+              stroke-dashoffset: 0
+            
+            50% 
+              stroke-dasharray: 90, 200
+              stroke-dashoffset: -35px
+            
+            100% 
+              stroke-dashoffset: -125px
+            
+          
+          @-webkit-keyframes dash 
+            0% 
+              stroke-dasharray: 1, 200
+              stroke-dashoffset: 0
+            
+            50% 
+              stroke-dasharray: 90, 200
+              stroke-dashoffset: -35px
+            
+            100% 
+              stroke-dashoffset: -125px
+            
+          
+          @-o-keyframes dash 
+            0% 
+              stroke-dasharray: 1, 200
+              stroke-dashoffset: 0
+            
+            50% 
+              stroke-dasharray: 90, 200
+              stroke-dashoffset: -35px
+            
+            100% 
+              stroke-dashoffset: -125px
+            
+          
+          @keyframes dash 
+            0% 
+              stroke-dasharray: 1, 200
+              stroke-dashoffset: 0
+            
+            50% 
+              stroke-dasharray: 90, 200
+              stroke-dashoffset: -35px
+            
+            100% 
+              stroke-dashoffset: -125px
+            
+          
+      
 
-.create_task button:hover {
-  cursor: pointer;
-  box-shadow: 5px 5px 5px #a1a1a1;
-  transition: .5s;
-}
 </style>
